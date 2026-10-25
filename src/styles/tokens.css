@@ -1,0 +1,22 @@
+/*
+ * デザイントークン。3D 側の色は src/lib/theme.ts と値を揃えること。
+ */
+:root {
+  --c-void: #07021a;
+  --c-night: #120634;
+  --c-dusk: #2a0a5e;
+  --c-pink: #ff2e88;
+  --c-cyan: #00f0ff;
+  --c-yellow: #ffe600;
+  --c-violet: #8a2bff;
+  --c-orange: #ff7a1a;
+  --c-mint: #3dffb5;
+  --c-ink: #f4ecff;
+  --c-ink-dim: #b9a8e6;
+
+  --glow-pink: 0 0 6px #ff2e88cc, 0 0 22px #ff2e8866;
+  --glow-cyan: 0 0 6px #00f0ffcc, 0 0 22px #00f0ff66;
+
+  --grad-sunset: linear-gradient(100deg, #ff2e88 0%, #ff7a1a 45%, #ffe600 100%);
+  --grad-cyber: linear-gradient(100deg, #00f0ff 0%, #8a2bff 55%, #ff2e88 100%);
+}

@@ -1,26 +1,169 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "../styles/tokens.css";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-void: var(--c-void);
+  --color-night: var(--c-night);
+  --color-dusk: var(--c-dusk);
+  --color-pink: var(--c-pink);
+  --color-cyan: var(--c-cyan);
+  --color-yellow: var(--c-yellow);
+  --color-violet: var(--c-violet);
+  --color-orange: var(--c-orange);
+  --color-mint: var(--c-mint);
+  --color-ink: var(--c-ink);
+  --color-ink-dim: var(--c-ink-dim);
+
+  /* 欧文フォントに和文グリフが無いので Zen Kaku Gothic をフォールバックにする */
+  --font-display: var(--font-orbitron), var(--font-zen-kaku);
+  --font-pixel: var(--font-dotgothic), var(--font-zen-kaku);
+  --font-sans: var(--font-zen-kaku);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--c-void);
+  color: var(--c-ink);
+}
+
+/* ---------- 画面全体のエフェクト ---------- */
+
+/* シティポップの夕焼けのような光だまり */
+.fx-haze {
+  background:
+    radial-gradient(60% 45% at 85% 105%, #ff2e8855 0%, transparent 70%),
+    radial-gradient(50% 40% at 5% 0%, #00f0ff33 0%, transparent 70%),
+    radial-gradient(40% 35% at 100% 0%, #8a2bff44 0%, transparent 70%);
+  mix-blend-mode: screen;
+}
+
+/* ブラウン管の走査線 */
+.fx-scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    #00000038 3px,
+    transparent 4px
+  );
+}
+
+/* 下部のレトロフューチャーなグリッド床 */
+.fx-floor {
+  background-image:
+    linear-gradient(to top, #ff2e8833 1px, transparent 1px),
+    linear-gradient(to right, #ff2e8833 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(320px) rotateX(62deg);
+  transform-origin: bottom;
+  mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+}
+
+/* ---------- UI 部品 ---------- */
+
+.neon-panel {
+  background: linear-gradient(160deg, #1a0840d9, #07021ae6);
+  border: 1px solid #ff2e8866;
+  box-shadow:
+    inset 0 0 0 1px #00f0ff1a,
+    0 0 24px #ff2e8833,
+    0 0 64px #8a2bff22;
+  backdrop-filter: blur(10px);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
+}
+
+.text-sunset {
+  background: var(--grad-sunset);
+  background-clip: text;
+  color: transparent;
+}
+
+.text-cyber {
+  background: var(--grad-cyber);
+  background-clip: text;
+  color: transparent;
+}
+
+/* タイトルのグリッチ: 色ずれした残像を2枚重ねる */
+.glitch {
+  position: relative;
+}
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.glitch::before {
+  color: var(--c-cyan);
+  transform: translate(-2px, 0);
+  mix-blend-mode: screen;
+  animation: glitch-shift 3.2s infinite steps(1);
+}
+.glitch::after {
+  color: var(--c-pink);
+  transform: translate(2px, 0);
+  mix-blend-mode: screen;
+  animation: glitch-shift 2.7s infinite reverse steps(1);
+}
+
+@keyframes glitch-shift {
+  0%,
+  86%,
+  100% {
+    clip-path: inset(0 0 100% 0);
+  }
+  88% {
+    clip-path: inset(10% 0 55% 0);
+    transform: translate(-4px, 1px);
+  }
+  91% {
+    clip-path: inset(60% 0 8% 0);
+    transform: translate(3px, -1px);
+  }
+  94% {
+    clip-path: inset(30% 0 40% 0);
+    transform: translate(-2px, 0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* 星座ラベル（drei の <Html> で 3D 空間に配置） */
+.constellation-label {
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  font-family: var(--font-zen-kaku), sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-ink);
+  text-shadow: var(--glow-pink);
+  transition: opacity 0.25s;
+}
+.constellation-label[data-rank="1"] {
+  font-size: 13px;
+  color: #fff;
+  text-shadow: var(--glow-cyan);
+}
+.constellation-label[data-rank="3"] {
+  font-size: 10px;
+  color: var(--c-ink-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch::before,
+  .glitch::after {
+    animation: none;
+    clip-path: inset(0 0 100% 0);
+  }
 }
