@@ -58,7 +58,9 @@ export default function CelestialCanvas() {
   return (
     <Canvas
       dpr={[1, 2]}
-      camera={{ fov: 50, near: 0.001, far: 1000 }}
+      // near を小さくしすぎると深度の精度が落ち、球の表面と星・線の前後判定が揺れてちらつく。
+      // 一番近い描画物でも 10（天球の半径）離れているので 0.1 で十分
+      camera={{ fov: 50, near: 0.1, far: 1000 }}
       gl={{ antialias: false, powerPreference: "high-performance" }}
       className="touch-none"
     >
