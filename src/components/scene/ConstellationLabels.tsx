@@ -16,6 +16,7 @@ const toCamera = new THREE.Vector3();
 export function ConstellationLabels({ constellations }: { constellations: Constellation[] }) {
   const lang = useSkyStore((s) => s.labelLang);
   const viewMode = useSkyStore((s) => s.viewMode);
+  const selectedId = useSkyStore((s) => s.selectedId);
   const refs = useRef<(HTMLDivElement | null)[]>([]);
 
   const items = useMemo(
@@ -40,13 +41,21 @@ export function ConstellationLabels({ constellations }: { constellations: Conste
   });
 
   return items.map((c, i) => (
-    <Html key={c.id} position={c.position} center zIndexRange={[10, 0]}>
+    <Html
+      key={c.id}
+      position={c.position}
+      center
+      zIndexRange={[10, 0]}
+      // center 指定時は pointerEvents プロップが効かないので style で指定する
+      style={{ pointerEvents: "none" }}
+    >
       <div
         ref={(el) => {
           refs.current[i] = el;
         }}
         className="constellation-label"
         data-rank={c.rank}
+        data-selected={c.id === selectedId || undefined}
         style={viewMode === "inside" ? { opacity: 1 } : undefined}
       >
         {lang === "ja" ? c.ja : c.name}

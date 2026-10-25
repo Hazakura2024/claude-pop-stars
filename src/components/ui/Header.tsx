@@ -9,7 +9,7 @@ export function Header() {
         POP★STARS
       </h1>
       <p className="font-pixel text-ink-dim mt-1 text-xs">
-        ドラッグで回転 ・ ホイール／ピンチでズーム
+        ドラッグで回転 ・ ホイール／ピンチでズーム ・ 星座をクリックで詳細
       </p>
     </header>
   );

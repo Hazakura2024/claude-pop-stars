@@ -24,7 +24,8 @@ export function CameraRig() {
   const get = useThree((s) => s.get);
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const viewMode = useSkyStore((s) => s.viewMode);
-  const autoRotate = useSkyStore((s) => s.autoRotate);
+  // 星座を選んでいる間は、カードの内容と画面がずれないよう自動回転を止める
+  const autoRotate = useSkyStore((s) => s.autoRotate && s.selectedId === null);
   const resetToken = useSkyStore((s) => s.resetToken);
 
   useEffect(() => {

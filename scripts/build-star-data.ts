@@ -10,6 +10,7 @@ import path from "node:path";
 import type {
   Constellation,
   ConstellationCatalog,
+  NotableStar,
   RaDec,
   StarCatalog,
   StarRecord,
@@ -33,7 +34,18 @@ interface FeatureCollection<G, P> {
 
 type StarFeature = Feature<{ coordinates: Position }, { mag: number; bv: string }>;
 type LineFeature = Feature<{ coordinates: Position[][] }, { rank: string }>;
-type NameFeature = Feature<{ coordinates: Position }, { name: string; ja: string; rank: string }>;
+type NameFeature = Feature<
+  { coordinates: Position },
+  { name: string; ja: string; en: string; gen: string; rank: string }
+>;
+
+/** starnames.json: HIP 番号 → 名前と所属星座 */
+type StarNames = Record<string, { name: string; ja?: string; desig: string; c: string }>;
+
+interface MemberStar extends NotableStar {
+  dec: number;
+  position: RaDec;
+}
 
 async function fetchJson<T>(file: string): Promise<T> {
   const res = await fetch(`${SOURCE}/${file}`);
@@ -47,13 +59,26 @@ function toRaDec([lon, lat]: Position): RaDec {
   return [round(ra, 4), round(lat, 4)];
 }
 
+/** 角距離が最も近い点の添字 */
+function nearestIndex([ra, dec]: RaDec, points: RaDec[]): number {
+  const rad = Math.PI / 180;
+  const cosDist = ([r, d]: RaDec) =>
+    Math.sin(dec * rad) * Math.sin(d * rad) +
+    Math.cos(dec * rad) * Math.cos(d * rad) * Math.cos((ra - r) * rad);
+  let best = 0;
+  points.forEach((p, i) => {
+    if (cosDist(p) > cosDist(points[best])) best = i;
+  });
+  return best;
+}
+
 function round(value: number, digits: number): number {
   const f = 10 ** digits;
   return Math.round(value * f) / f;
 }
 
 async function main() {
-  const [stars, lines, names] = await Promise.all([
+  const [stars, lines, names, starNames] = await Promise.all([
     fetchJson<FeatureCollection<StarFeature["geometry"], StarFeature["properties"]>>(
       "stars.6.json",
     ),
@@ -63,7 +88,26 @@ async function main() {
     fetchJson<FeatureCollection<NameFeature["geometry"], NameFeature["properties"]>>(
       "constellations.json",
     ),
+    fetchJson<StarNames>("starnames.json"),
   ]);
+
+  // 所属星座ごとに恒星をまとめる（略符 → 星の配列）
+  const members = new Map<string, MemberStar[]>();
+  for (const f of stars.features) {
+    const info = starNames[String(f.id)];
+    if (!info || f.properties.mag > MAG_LIMIT) continue;
+    const position = toRaDec(f.geometry.coordinates);
+    const list = members.get(info.c) ?? [];
+    list.push({
+      ja: info.ja ?? "",
+      name: info.name,
+      desig: info.desig,
+      mag: round(f.properties.mag, 2),
+      dec: position[1],
+      position,
+    });
+    members.set(info.c, list);
+  }
 
   const starRecords: StarRecord[] = stars.features
     .filter((f) => f.properties.mag <= MAG_LIMIT)
@@ -87,14 +131,32 @@ async function main() {
     const nth = seen.get(id) ?? 0;
     seen.set(id, nth + 1);
     const parts = linesById.get(id) ?? [];
+    const label = toRaDec(f.geometry.coordinates);
+    let stars = members.get(id) ?? [];
+    if (parts.length > 1) {
+      // へび座の星は、ラベル位置が近いほうの部分に振り分ける
+      const labels = names.features
+        .filter((g) => String(g.id) === id)
+        .map((g) => toRaDec(g.geometry.coordinates));
+      stars = stars.filter((s) => nearestIndex(s.position, labels) === nth);
+    }
+    const lineCoords = (parts[nth]?.geometry.coordinates ?? []).map((line) => line.map(toRaDec));
+    const decs = [...stars.map((s) => s.dec), ...lineCoords.flat().map(([, d]) => d)];
     return {
       id: parts.length > 1 ? `${id}${nth + 1}` : id,
       name: f.properties.name,
       ja:
         parts.length > 1 ? `${f.properties.ja}（${nth === 0 ? "頭部" : "尾部"}）` : f.properties.ja,
+      en: f.properties.en,
+      genitive: f.properties.gen,
       rank: Number(f.properties.rank),
-      label: toRaDec(f.geometry.coordinates),
-      lines: (parts[nth]?.geometry.coordinates ?? []).map((line) => line.map(toRaDec)),
+      brightest: stars
+        .toSorted((a, b) => a.mag - b.mag)
+        .slice(0, 3)
+        .map(({ ja, name, desig, mag }) => ({ ja, name, desig, mag })),
+      decRange: [Math.min(...decs), Math.max(...decs)],
+      label,
+      lines: lineCoords,
     };
   });
 

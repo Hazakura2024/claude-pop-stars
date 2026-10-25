@@ -159,6 +159,13 @@ body {
   font-size: 10px;
   color: var(--c-ink-dim);
 }
+.constellation-label[data-selected] {
+  font-size: 15px;
+  color: var(--c-yellow);
+  text-shadow:
+    0 0 6px #ffe600cc,
+    0 0 22px #ff2e8888;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .glitch::before,

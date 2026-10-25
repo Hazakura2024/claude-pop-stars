@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 
 import { ControlPanel } from "@/components/ui/ControlPanel";
 import { Header } from "@/components/ui/Header";
+import { InfoCard } from "@/components/ui/InfoCard";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { StatusBar } from "@/components/ui/StatusBar";
 
@@ -30,6 +31,7 @@ export function SkyApp() {
       <Header />
       <ControlPanel />
       <StatusBar />
+      <InfoCard />
       <LoadingScreen />
     </main>
   );

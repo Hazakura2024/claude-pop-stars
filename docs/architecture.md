@@ -11,11 +11,13 @@ app/page.tsx (Server Component)
    │  │   ├─ Stars                           … 恒星（Points + 自作シェーダー）
    │  │   ├─ CelestialGrid / Ecliptic        … 赤経赤緯グリッド・黄道
    │  │   ├─ ConstellationLines              … 星座線
-   │  │   └─ ConstellationLabels             … 星座名（drei <Html>）
+   │  │   ├─ ConstellationHighlight          … 選択中（黄）・ホバー中（シアン）の星座線
+   │  │   ├─ ConstellationLabels             … 星座名（drei <Html>）
+   │  │   └─ ConstellationPicker             … クリック・ホバーの判定（透明な球）
    │  ├─ CameraRig                           … OrbitControls・視点切替
    │  └─ Effects                             … ポストプロセス
    ├─ 画面効果のオーバーレイ（グリッド床・光だまり・走査線）
-   └─ Header / ControlPanel / StatusBar / LoadingScreen
+   └─ Header / ControlPanel / StatusBar / InfoCard / LoadingScreen
 ```
 
 - Three.js は `window` と WebGL を必要とするので、`CelestialCanvas` は `next/dynamic` の `ssr: false` で読み込む。`ssr: false` はクライアントコンポーネントの中でしか使えないため、`SkyApp` に `"use client"` を付けている。
@@ -25,14 +27,16 @@ app/page.tsx (Server Component)
 
 `src/store/useSkyStore.ts`（Zustand）で UI と 3D シーンが状態を共有する。
 
-| 状態         | 内容                                                |
-| ------------ | --------------------------------------------------- |
-| `viewMode`   | `"outside"`（天球儀）/ `"inside"`（プラネタリウム） |
-| `layers`     | 星座線・星座名・グリッド・黄道の表示 ON/OFF         |
-| `labelLang`  | 星座名の言語（`ja` / `en`）                         |
-| `autoRotate` | 自動回転                                            |
-| `resetToken` | 値が変わるたびに `CameraRig` がカメラを初期化       |
-| `ready`      | 星データの読み込みが済んだか（ローディング画面用）  |
+| 状態         | 内容                                                 |
+| ------------ | ---------------------------------------------------- |
+| `viewMode`   | `"outside"`（天球儀）/ `"inside"`（プラネタリウム）  |
+| `layers`     | 星座線・星座名・グリッド・黄道の表示 ON/OFF          |
+| `labelLang`  | 星座名の言語（`ja` / `en`）                          |
+| `autoRotate` | 自動回転                                             |
+| `resetToken` | 値が変わるたびに `CameraRig` がカメラを初期化        |
+| `ready`      | 星データの読み込みが済んだか（ローディング画面用）   |
+| `selectedId` | 情報カードを表示中の星座（選択中は自動回転を止める） |
+| `hoveredId`  | ポインターが乗っている星座                           |
 
 ## データの読み込み
 
@@ -55,6 +59,22 @@ app/page.tsx (Server Component)
 - **星座線**: すべての線分を drei `<Line segments>`（Line2）1 本にまとめる。太さをピクセル単位で指定できる。
 - **発光**: 色を `toneMapped={false}` で出し、Bloom で光らせる。
 
+## 星座の選択と情報カード
+
+1. `ConstellationPicker` は天球と同じ半径の透明な球（色も深度も書き込まない）で、R3F のポインターイベントを受け取る。
+2. 当たった点を単位ベクトルにし、`pickConstellation()`（`src/lib/astro/picking.ts`）で、星座線の線分とラベル位置のうちいちばん近い星座を探す。
+3. 判定の距離は画面上のピクセル数で決め（マウス 18px、タッチ 28px）、カメラの距離と画角から天球上の角度に換算する。画面の大きさやズームに関係なく、同じ感覚で選べる。
+4. `e.delta`（押してから離すまでの移動量）が 5px を超えたらドラッグとみなし、選択しない。
+5. 選んだ星座は `selectedId` に入り、`InfoCard` が表示する。見頃と見え方は `src/lib/astro/visibility.ts` で計算する。
+   - **見頃**: 20時ごろに南中する時期。0時の恒星時が 9/21 に 0h で、1か月に 2h 進むことから赤経で求める
+   - **東京から**: 星座の赤緯の範囲と北緯 35.7° から、沈まない／全体が見える／一部だけ見える／見えない、を判定する
+6. カードは ✕ ボタンか Esc キーで閉じる。星座のない場所をクリックしても閉じる。
+
+星座名のラベル（drei `<Html>`）は `pointer-events: none` にして、クリックやドラッグを妨げないようにしている。`center` を指定した `<Html>` では `pointerEvents` プロップが効かないので、`style` で指定する。
+
 ## テスト
 
-`tests/astro.test.ts` で座標変換・黄道変換・等級／色指数の変換を確認する。3D の見た目はブラウザで確認する。
+- `tests/astro.test.ts`: 座標変換・黄道変換・等級／色指数の変換
+- `tests/constellation.test.ts`: 見頃・見え方の判定、赤経赤緯の表示形式、クリック位置からの星座の判定
+
+3D の見た目はブラウザで確認する。

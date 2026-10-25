@@ -20,6 +20,10 @@ interface SkyState {
   resetToken: number;
   /** 星データの読み込みが完了したか */
   ready: boolean;
+  /** 情報カードを表示中の星座 */
+  selectedId: string | null;
+  /** ポインターが乗っている星座 */
+  hoveredId: string | null;
 
   setViewMode: (mode: ViewMode) => void;
   toggleLayer: (key: keyof Layers) => void;
@@ -27,6 +31,8 @@ interface SkyState {
   toggleAutoRotate: () => void;
   resetView: () => void;
   setReady: (ready: boolean) => void;
+  select: (id: string | null) => void;
+  hover: (id: string | null) => void;
 }
 
 export const useSkyStore = create<SkyState>()((set) => ({
@@ -36,6 +42,8 @@ export const useSkyStore = create<SkyState>()((set) => ({
   autoRotate: true,
   resetToken: 0,
   ready: false,
+  selectedId: null,
+  hoveredId: null,
 
   setViewMode: (viewMode) => set((s) => ({ viewMode, resetToken: s.resetToken + 1 })),
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
@@ -43,4 +51,6 @@ export const useSkyStore = create<SkyState>()((set) => ({
   toggleAutoRotate: () => set((s) => ({ autoRotate: !s.autoRotate })),
   resetView: () => set((s) => ({ resetToken: s.resetToken + 1 })),
   setReady: (ready) => set({ ready }),
+  select: (selectedId) => set({ selectedId }),
+  hover: (hoveredId) => set((s) => (s.hoveredId === hoveredId ? s : { hoveredId })),
 }));

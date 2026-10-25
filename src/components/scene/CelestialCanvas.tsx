@@ -11,8 +11,10 @@ import { useSkyStore } from "@/store/useSkyStore";
 import { Armillary } from "./Armillary";
 import { CameraRig } from "./CameraRig";
 import { CelestialGrid, Ecliptic } from "./CelestialGrid";
+import { ConstellationHighlight } from "./ConstellationHighlight";
 import { ConstellationLabels } from "./ConstellationLabels";
 import { ConstellationLines } from "./ConstellationLines";
+import { ConstellationPicker } from "./ConstellationPicker";
 import { Effects } from "./Effects";
 import { Globe } from "./Globe";
 import { Stars } from "./Stars";
@@ -49,7 +51,9 @@ function Sky() {
       {layers.constellations && (
         <ConstellationLines constellations={constellations.constellations} />
       )}
+      <ConstellationHighlight constellations={constellations.constellations} />
       {layers.labels && <ConstellationLabels constellations={constellations.constellations} />}
+      <ConstellationPicker constellations={constellations.constellations} />
     </>
   );
 }
