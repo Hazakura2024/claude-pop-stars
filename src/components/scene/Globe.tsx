@@ -26,8 +26,12 @@ const fragmentShader = /* glsl */ `
   varying vec3 vViewDir;
 
   void main() {
-    float fresnel = pow(1.0 - max(dot(vNormal, vViewDir), 0.0), 2.6);
-    vec3 rim = mix(uRimA, uRimB, clamp(vNormal.y * 0.5 + 0.5, 0.0, 1.0));
+    // 補間後のベクトルは正規化し直す。さらに pow の底を 0〜1 に収める。
+    // 誤差で dot が 1 を超えると pow(負, 2.6) が NaN になり、Bloom がそれを広げて球の周りが明滅する
+    vec3 normal = normalize(vNormal);
+    float facing = clamp(dot(normal, normalize(vViewDir)), 0.0, 1.0);
+    float fresnel = pow(1.0 - facing, 2.6);
+    vec3 rim = mix(uRimA, uRimB, clamp(normal.y * 0.5 + 0.5, 0.0, 1.0));
     gl_FragColor = vec4(uBase + rim * fresnel * 1.4, 1.0);
   }
 `;
