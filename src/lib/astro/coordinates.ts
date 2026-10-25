@@ -50,3 +50,48 @@ export function eclipticCircle(radius: number, segments = 180): Vec3[] {
     return raDecToVec3(ra, dec, radius);
   });
 }
+
+/**
+ * 2点（赤経・赤緯）を大円に沿って結ぶ点列を返す（両端を含む）。
+ * 2点を直線で結ぶと中ほどが球の内側に沈み、天球儀モードでは球に隠れてしまうため、
+ * stepDeg 以下の間隔で球面上を補間する（球面線形補間 slerp）。
+ */
+export function greatCircleArc(
+  [raA, decA]: [number, number],
+  [raB, decB]: [number, number],
+  radius = 1,
+  stepDeg = 2,
+): Vec3[] {
+  const a = raDecToVec3(raA, decA);
+  const b = raDecToVec3(raB, decB);
+  const cosAngle = Math.min(Math.max(a[0] * b[0] + a[1] * b[1] + a[2] * b[2], -1), 1);
+  const angle = Math.acos(cosAngle);
+  // 浮動小数点の誤差で 4°/2° が 2.0000001 になり余分に分割されないよう、わずかに差し引く
+  const steps = Math.max(1, Math.ceil(angle / (stepDeg * DEG) - 1e-9));
+  const sinAngle = Math.sin(angle);
+
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps;
+    // ほぼ同じ点なら線形補間で十分（sin(angle) ≈ 0 での割り算を避ける）
+    const [wa, wb] =
+      sinAngle < 1e-6
+        ? [1 - t, t]
+        : [Math.sin((1 - t) * angle) / sinAngle, Math.sin(t * angle) / sinAngle];
+    return [0, 1, 2].map((k) => radius * (wa * a[k] + wb * b[k])) as Vec3;
+  });
+}
+
+/**
+ * 星座線（折れ線の配列）を、大円に沿った短い線分の組 [p0, p1, p1, p2, …] に変換する。
+ * drei の <Line segments> にそのまま渡せる。
+ */
+export function arcSegments(lines: [number, number][][], radius = 1, stepDeg = 2): Vec3[] {
+  const points: Vec3[] = [];
+  for (const line of lines) {
+    for (let i = 0; i < line.length - 1; i++) {
+      const arc = greatCircleArc(line[i], line[i + 1], radius, stepDeg);
+      for (let j = 0; j < arc.length - 1; j++) points.push(arc[j], arc[j + 1]);
+    }
+  }
+  return points;
+}

@@ -3,11 +3,11 @@
  */
 import type { Constellation } from "@/types/astro";
 
-import { DEG, raDecToVec3, type Vec3 } from "./coordinates";
+import { arcSegments, DEG, raDecToVec3, type Vec3 } from "./coordinates";
 
 export interface PickTarget {
   id: string;
-  /** 星座線の線分（単位ベクトルの組） */
+  /** 星座線を大円に沿って分割した短い線分（単位ベクトルの組） */
   segments: [Vec3, Vec3][];
   label: Vec3;
 }
@@ -15,11 +15,13 @@ export interface PickTarget {
 export function buildPickTargets(constellations: Constellation[]): PickTarget[] {
   return constellations.map((c) => ({
     id: c.id,
-    segments: c.lines.flatMap((line) =>
-      line.slice(1).map((p, i): [Vec3, Vec3] => [raDecToVec3(...line[i]), raDecToVec3(...p)]),
-    ),
+    segments: pairs(arcSegments(c.lines)),
     label: raDecToVec3(...c.label),
   }));
+}
+
+function pairs(points: Vec3[]): [Vec3, Vec3][] {
+  return Array.from({ length: points.length / 2 }, (_, i) => [points[2 * i], points[2 * i + 1]]);
 }
 
 function sub(a: Vec3, b: Vec3): Vec3 {

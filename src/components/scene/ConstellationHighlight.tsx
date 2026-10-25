@@ -3,22 +3,14 @@
 import { Line } from "@react-three/drei";
 import { useMemo } from "react";
 
-import { raDecToVec3, type Vec3 } from "@/lib/astro";
+import { arcSegments } from "@/lib/astro";
 import { GLOBE_RADIUS, palette } from "@/lib/theme";
 import { useSkyStore } from "@/store/useSkyStore";
 import type { Constellation } from "@/types/astro";
 
 function HighlightLines({ constellation, color }: { constellation: Constellation; color: string }) {
   const segments = useMemo(
-    () =>
-      constellation.lines.flatMap((line) =>
-        line
-          .slice(1)
-          .flatMap((p, i): Vec3[] => [
-            raDecToVec3(...line[i], GLOBE_RADIUS * 1.001),
-            raDecToVec3(...p, GLOBE_RADIUS * 1.001),
-          ]),
-      ),
+    () => arcSegments(constellation.lines, GLOBE_RADIUS * 1.001),
     [constellation],
   );
 
