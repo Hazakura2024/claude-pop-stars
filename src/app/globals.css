@@ -167,10 +167,47 @@ body {
     0 0 22px #ff2e8888;
 }
 
+/* 星の名前（拡大時）。情報カードの「明るい星」と同じ、太字の名前＋淡い符号の2段 */
+.star-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  font-family: var(--font-zen-kaku), sans-serif;
+  line-height: 1.25;
+  /* center 指定で星の位置に箱の中心が来るので、箱ごと星の下へずらす */
+  transform: translateY(calc(50% + var(--star-offset, 8px)));
+  text-shadow:
+    0 0 3px var(--c-void),
+    0 0 8px var(--c-void);
+  transition: opacity 0.25s;
+  animation: star-label-in 0.3s ease-out;
+}
+.star-label-main {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+.star-label-sub {
+  font-size: 10px;
+  color: var(--c-ink-dim);
+}
+
+@keyframes star-label-in {
+  from {
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .glitch::before,
   .glitch::after {
     animation: none;
     clip-path: inset(0 0 100% 0);
+  }
+  .star-label {
+    animation: none;
   }
 }

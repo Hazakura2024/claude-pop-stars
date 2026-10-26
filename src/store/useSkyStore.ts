@@ -7,6 +7,8 @@ export type LabelLang = "ja" | "en";
 export interface Layers {
   constellations: boolean;
   labels: boolean;
+  /** 拡大したときの星の名前 */
+  starNames: boolean;
   grid: boolean;
   ecliptic: boolean;
 }
@@ -37,7 +39,7 @@ interface SkyState {
 
 export const useSkyStore = create<SkyState>()((set) => ({
   viewMode: "outside",
-  layers: { constellations: true, labels: true, grid: true, ecliptic: true },
+  layers: { constellations: true, labels: true, starNames: true, grid: true, ecliptic: true },
   labelLang: "ja",
   autoRotate: true,
   resetToken: 0,

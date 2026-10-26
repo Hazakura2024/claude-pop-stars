@@ -4,7 +4,7 @@ import { type ThreeEvent, useThree } from "@react-three/fiber";
 import { useMemo } from "react";
 import * as THREE from "three";
 
-import { buildPickTargets, pickConstellation, type Vec3 } from "@/lib/astro";
+import { buildPickTargets, degreesPerPixel, pickConstellation, type Vec3 } from "@/lib/astro";
 import { GLOBE_RADIUS } from "@/lib/theme";
 import { useSkyStore } from "@/store/useSkyStore";
 import type { Constellation } from "@/types/astro";
@@ -29,11 +29,9 @@ export function ConstellationPicker({ constellations }: { constellations: Conste
     const { camera: cam, size } = get();
     const camera = cam as THREE.PerspectiveCamera;
     const px = pointerType === "touch" ? PICK_RADIUS_PX.touch : PICK_RADIUS_PX.mouse;
-    // 1px あたりのワールド長 = 2·d·tan(fov/2) / 画面の高さ（d は見ている面までの距離）
-    const perPixel = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / size.height;
     const inside = useSkyStore.getState().viewMode === "inside";
     const distance = inside ? GLOBE_RADIUS : camera.position.length() - GLOBE_RADIUS;
-    const maxDegrees = THREE.MathUtils.radToDeg((px * perPixel * distance) / GLOBE_RADIUS);
+    const maxDegrees = px * degreesPerPixel(camera.fov, size.height, distance, GLOBE_RADIUS);
     const dir = point.clone().normalize().toArray() as Vec3;
     return pickConstellation(dir, targets, maxDegrees);
   };

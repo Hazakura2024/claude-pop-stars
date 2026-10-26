@@ -17,10 +17,11 @@ import { ConstellationLines } from "./ConstellationLines";
 import { ConstellationPicker } from "./ConstellationPicker";
 import { Effects } from "./Effects";
 import { Globe } from "./Globe";
+import { StarLabels } from "./StarLabels";
 import { Stars } from "./Stars";
 
 function Sky() {
-  const { stars, constellations } = useSkyData();
+  const { stars, constellations, starNames } = useSkyData();
   const layers = useSkyStore((s) => s.layers);
   const viewMode = useSkyStore((s) => s.viewMode);
   const setReady = useSkyStore((s) => s.setReady);
@@ -53,6 +54,7 @@ function Sky() {
       )}
       <ConstellationHighlight constellations={constellations.constellations} />
       {layers.labels && <ConstellationLabels constellations={constellations.constellations} />}
+      {layers.starNames && <StarLabels catalog={starNames} />}
       <ConstellationPicker constellations={constellations.constellations} />
     </>
   );

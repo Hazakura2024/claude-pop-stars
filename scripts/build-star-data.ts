@@ -10,6 +10,8 @@ import path from "node:path";
 import type {
   Constellation,
   ConstellationCatalog,
+  NamedStar,
+  NamedStarCatalog,
   NotableStar,
   RaDec,
   StarCatalog,
@@ -19,6 +21,8 @@ import type {
 const SOURCE = "https://raw.githubusercontent.com/ofrohn/d3-celestial/master/data";
 const OUT_DIR = path.resolve(import.meta.dirname, "../public/data");
 const MAG_LIMIT = 6;
+/** 名前ラベルを用意する星の等級の上限 */
+const NAME_MAG_LIMIT = 4;
 
 type Position = [number, number];
 
@@ -160,15 +164,42 @@ async function main() {
     };
   });
 
+  // 名前ラベル用の星。属格は星座名データから引く（へび座は頭部・尾部とも "Serpentis"）
+  const genitives = new Map(names.features.map((f) => [String(f.id), f.properties.gen]));
+  const namedStars: NamedStar[] = stars.features
+    .filter((f) => f.properties.mag <= NAME_MAG_LIMIT)
+    .flatMap((f): NamedStar[] => {
+      const info = starNames[String(f.id)];
+      const genitive = info && genitives.get(info.c);
+      // 元データには符号が欠けて "undefined3" になっている星がある（エリダヌス座υ³）
+      const desig = info?.desig.includes("undefined") ? "" : info?.desig;
+      if (!info || !genitive || !(desig || info.name)) return [];
+      const [ra, dec] = toRaDec(f.geometry.coordinates);
+      return [
+        {
+          ja: info.ja ?? "",
+          name: info.name,
+          desig,
+          mag: round(f.properties.mag, 2),
+          ra,
+          dec,
+          genitive,
+        },
+      ];
+    })
+    .sort((a, b) => a.mag - b.mag);
+
   const starCatalog: StarCatalog = { magLimit: MAG_LIMIT, stars: starRecords };
   const constellationCatalog: ConstellationCatalog = { constellations };
+  const namedStarCatalog: NamedStarCatalog = { magLimit: NAME_MAG_LIMIT, stars: namedStars };
 
   await mkdir(OUT_DIR, { recursive: true });
   await writeFile(path.join(OUT_DIR, "stars.json"), JSON.stringify(starCatalog));
   await writeFile(path.join(OUT_DIR, "constellations.json"), JSON.stringify(constellationCatalog));
+  await writeFile(path.join(OUT_DIR, "starnames.json"), JSON.stringify(namedStarCatalog));
 
   console.log(
-    `✓ stars: ${starRecords.length}, constellations: ${constellations.length} → ${OUT_DIR}`,
+    `✓ stars: ${starRecords.length}, constellations: ${constellations.length}, named stars: ${namedStars.length} → ${OUT_DIR}`,
   );
 }
 

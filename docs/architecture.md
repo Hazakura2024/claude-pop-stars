@@ -13,6 +13,7 @@ app/page.tsx (Server Component)
    │  │   ├─ ConstellationLines              … 星座線
    │  │   ├─ ConstellationHighlight          … 選択中（黄）・ホバー中（シアン）の星座線
    │  │   ├─ ConstellationLabels             … 星座名（drei <Html>）
+   │  │   ├─ StarLabels                      … 拡大時の星の名前（drei <Html>）
    │  │   └─ ConstellationPicker             … クリック・ホバーの判定（透明な球）
    │  ├─ CameraRig                           … OrbitControls・視点切替
    │  └─ Effects                             … ポストプロセス
@@ -27,20 +28,20 @@ app/page.tsx (Server Component)
 
 `src/store/useSkyStore.ts`（Zustand）で UI と 3D シーンが状態を共有する。
 
-| 状態         | 内容                                                 |
-| ------------ | ---------------------------------------------------- |
-| `viewMode`   | `"outside"`（天球儀）/ `"inside"`（プラネタリウム）  |
-| `layers`     | 星座線・星座名・グリッド・黄道の表示 ON/OFF          |
-| `labelLang`  | 星座名の言語（`ja` / `en`）                          |
-| `autoRotate` | 自動回転                                             |
-| `resetToken` | 値が変わるたびに `CameraRig` がカメラを初期化        |
-| `ready`      | 星データの読み込みが済んだか（ローディング画面用）   |
-| `selectedId` | 情報カードを表示中の星座（選択中は自動回転を止める） |
-| `hoveredId`  | ポインターが乗っている星座                           |
+| 状態         | 内容                                                  |
+| ------------ | ----------------------------------------------------- |
+| `viewMode`   | `"outside"`（天球儀）/ `"inside"`（プラネタリウム）   |
+| `layers`     | 星座線・星座名・星の名前・グリッド・黄道の表示 ON/OFF |
+| `labelLang`  | 星座名の言語（`ja` / `en`）                           |
+| `autoRotate` | 自動回転                                              |
+| `resetToken` | 値が変わるたびに `CameraRig` がカメラを初期化         |
+| `ready`      | 星データの読み込みが済んだか（ローディング画面用）    |
+| `selectedId` | 情報カードを表示中の星座（選択中は自動回転を止める）  |
+| `hoveredId`  | ポインターが乗っている星座                            |
 
 ## データの読み込み
 
-`useSkyData()` は `/data/stars.json` と `/data/constellations.json` を取得し、その Promise を React 19 の `use()` で読む。Promise はモジュール内にキャッシュするので、取得は一度だけ。読み込み中は Canvas 内の `<Suspense>` で待ち、終わったら `ready` を立ててローディング画面を消す。
+`useSkyData()` は `/data/stars.json`・`/data/constellations.json`・`/data/starnames.json` を取得し、その Promise を React 19 の `use()` で読む。Promise はモジュール内にキャッシュするので、取得は一度だけ。読み込み中は Canvas 内の `<Suspense>` で待ち、終わったら `ready` を立ててローディング画面を消す。
 
 ## 視点モード
 
@@ -71,7 +72,7 @@ app/page.tsx (Server Component)
    - **東京から**: 星座の赤緯の範囲と北緯 35.7° から、沈まない／全体が見える／一部だけ見える／見えない、を判定する
 6. カードは ✕ ボタンか Esc キーで閉じる。星座のない場所をクリックしても閉じる。
 
-星座名のラベル（drei `<Html>`）は `pointer-events: none` にして、クリックやドラッグを妨げないようにしている。`center` を指定した `<Html>` では `pointerEvents` プロップが効かないので、`style` で指定する。
+星座名と星の名前のラベル（drei `<Html>`）は `pointer-events: none` にして、クリックやドラッグを妨げないようにしている。`center` を指定した `<Html>` では `pointerEvents` プロップが効かないので、`style` で指定する。
 
 ## テスト
 
@@ -79,3 +80,16 @@ app/page.tsx (Server Component)
 - `tests/constellation.test.ts`: 見頃・見え方の判定、赤経赤緯の表示形式、クリック位置からの星座の判定
 
 3D の見た目はブラウザで確認する。
+
+## 星の名前（拡大時）
+
+`StarLabels` は毎フレーム「画面の 1px が天球上で何度にあたるか」（`degreesPerPixel`）を求め、`starLabelMagLimit` で表示する星の等級の上限を決める（`src/lib/astro/stars.ts`）。Globe ではカメラの距離、Planetarium では画角で値が変わる。
+
+| 1px あたりの角度 | 表示する星 |
+| ---------------- | ---------- |
+| 0.06° より大きい | なし       |
+| 0.06° 以下       | 2等まで    |
+| 0.045° 以下      | 3等まで    |
+| 0.03° 以下       | 4等まで    |
+
+上限が変わったときだけ state を更新するので、ズーム中に毎フレーム再レンダーすることはない。表示名は情報カードと同じ `starLabel` で作る。

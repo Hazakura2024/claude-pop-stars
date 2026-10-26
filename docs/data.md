@@ -65,6 +65,23 @@ pnpm data
 }
 ```
 
+### `public/data/starnames.json`
+
+拡大時に名前を出す星。4等までで、固有名か符号のある星（519 個）を明るい順に並べる。
+
+<!-- prettier-ignore -->
+```jsonc
+{
+  "magLimit": 4,
+  "stars": [
+    // desig は元データのまま（"π3" など）。表示時に番号を上付きにする（π³）
+    { "ja": "ディフダ", "name": "Diphda", "desig": "β", "mag": 2.04, "ra": 10.8974, "dec": -17.9866, "genitive": "Ceti" }
+  ]
+}
+```
+
+元データには、符号が欠けて `"undefined3"` になっている星（エリダヌス座υ³）がある。この符号は空にしている。
+
 型は `src/types/astro.ts` にある。
 
 ## 座標系

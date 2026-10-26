@@ -1,10 +1,11 @@
 import { use } from "react";
 
-import type { ConstellationCatalog, StarCatalog } from "@/types/astro";
+import type { ConstellationCatalog, NamedStarCatalog, StarCatalog } from "@/types/astro";
 
 export interface SkyData {
   stars: StarCatalog;
   constellations: ConstellationCatalog;
+  starNames: NamedStarCatalog;
 }
 
 let cache: Promise<SkyData> | undefined;
@@ -19,7 +20,8 @@ function loadSkyData(): Promise<SkyData> {
   cache ??= Promise.all([
     fetchJson<StarCatalog>("/data/stars.json"),
     fetchJson<ConstellationCatalog>("/data/constellations.json"),
-  ]).then(([stars, constellations]) => ({ stars, constellations }));
+    fetchJson<NamedStarCatalog>("/data/starnames.json"),
+  ]).then(([stars, constellations, starNames]) => ({ stars, constellations, starNames }));
   return cache;
 }
 

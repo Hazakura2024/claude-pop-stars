@@ -3,20 +3,19 @@
 import { Suspense, useEffect } from "react";
 
 import { useSkyData } from "@/hooks/useSkyData";
-import { bestViewing, formatDec, formatRa, VISIBILITY_LABEL, visibilityFrom } from "@/lib/astro";
+import {
+  bestViewing,
+  formatDec,
+  formatRa,
+  starLabel,
+  VISIBILITY_LABEL,
+  visibilityFrom,
+} from "@/lib/astro";
 import { useSkyStore } from "@/store/useSkyStore";
-import type { Constellation, NotableStar } from "@/types/astro";
 
 /** 略符（例: "Ser1" → "Ser"） */
 function abbreviation(id: string): string {
   return id.replace(/\d+$/, "");
-}
-
-function starLabel(star: NotableStar, c: Constellation): { main: string; sub: string } {
-  const designation = `${star.desig} ${c.genitive}`.trim();
-  if (star.ja) return { main: star.ja, sub: designation };
-  if (star.name) return { main: star.name, sub: designation };
-  return { main: designation, sub: "" };
 }
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
@@ -78,7 +77,7 @@ function CardBody({ id }: { id: string }) {
         <Row label="明るい星">
           <ol className="space-y-1">
             {c.brightest.map((star) => {
-              const { main, sub } = starLabel(star, c);
+              const { main, sub } = starLabel(star, c.genitive);
               return (
                 <li key={`${star.desig}-${star.mag}`} className="flex items-baseline gap-2">
                   <span className="font-bold">{main}</span>

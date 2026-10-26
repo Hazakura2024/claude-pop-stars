@@ -10,6 +10,7 @@ import { Toggle } from "./Toggle";
 const LAYER_LABELS: Record<keyof Layers, string> = {
   constellations: "星座線",
   labels: "星座名",
+  starNames: "星の名前（拡大時）",
   grid: "赤経・赤緯グリッド",
   ecliptic: "黄道",
 };

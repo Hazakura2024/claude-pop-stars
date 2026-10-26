@@ -21,6 +21,20 @@ export interface NotableStar {
   mag: number;
 }
 
+/** 名前を表示する星（public/data/starnames.json の1レコード） */
+export interface NamedStar extends NotableStar {
+  ra: number;
+  dec: number;
+  /** 所属星座の属格（例: "Ceti"） */
+  genitive: string;
+}
+
+export interface NamedStarCatalog {
+  /** 収録した最も暗い等級 */
+  magLimit: number;
+  stars: NamedStar[];
+}
+
 export interface Constellation {
   /** IAU 略符（例: "Ori"） */
   id: string;
