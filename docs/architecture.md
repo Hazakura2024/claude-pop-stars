@@ -29,18 +29,19 @@ app/page.tsx (Server Component)
 
 `src/store/useSkyStore.ts`（Zustand）で UI と 3D シーンが状態を共有する。
 
-| 状態         | 内容                                                  |
-| ------------ | ----------------------------------------------------- |
-| `viewMode`   | `"outside"`（天球儀）/ `"inside"`（プラネタリウム）   |
-| `layers`     | 星座線・星座名・星の名前・グリッド・黄道の表示 ON/OFF |
-| `labelLang`  | 星座名の言語（`ja` / `en`）                           |
-| `autoRotate` | 自動回転                                              |
-| `resetToken` | 値が変わるたびに `CameraRig` がカメラを初期化         |
-| `ready`      | 星データの読み込みが済んだか（ローディング画面用）    |
-| `selectedId` | 情報カードを表示中の星座（選択中は自動回転を止める）  |
-| `hoveredId`  | ポインターが乗っている星座                            |
-| `focus`      | 検索で選んだ星・星座（星なら目印を付ける）            |
-| `focusToken` | 値が変わるたびに `CameraRig` が `focus` へ移動する    |
+| 状態             | 内容                                                     |
+| ---------------- | -------------------------------------------------------- |
+| `viewMode`       | `"outside"`（天球儀）/ `"inside"`（プラネタリウム）      |
+| `layers`         | 星座線・星座名・星の名前・グリッド・黄道の表示 ON/OFF    |
+| `labelLang`      | 星座名の言語（`ja` / `en`）                              |
+| `starLabelParts` | 星の名前の2段目に出す項目（バイエル符号・等級）の ON/OFF |
+| `autoRotate`     | 自動回転                                                 |
+| `resetToken`     | 値が変わるたびに `CameraRig` がカメラを初期化            |
+| `ready`          | 星データの読み込みが済んだか（ローディング画面用）       |
+| `selectedId`     | 情報カードを表示中の星座（選択中は自動回転を止める）     |
+| `hoveredId`      | ポインターが乗っている星座                               |
+| `focus`          | 検索で選んだ星・星座（星なら目印を付ける）               |
+| `focusToken`     | 値が変わるたびに `CameraRig` が `focus` へ移動する       |
 
 ## データの読み込み
 

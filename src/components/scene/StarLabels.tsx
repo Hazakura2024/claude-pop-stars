@@ -29,6 +29,7 @@ const projected = new THREE.Vector3();
  */
 export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
   const lang = useSkyStore((s) => s.labelLang);
+  const parts = useSkyStore((s) => s.starLabelParts);
   const viewMode = useSkyStore((s) => s.viewMode);
   // 検索で選んだ星は、拡大が足りなくても名前を出す
   const focusId = useSkyStore((s) => (s.focus?.kind === "star" ? s.focus.id : null));
@@ -39,10 +40,10 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
   // 前のフレームの置き場所。変わったときだけ DOM を書き換える
   const placements = useRef(new WeakMap<HTMLDivElement, LabelPlacement | null>());
 
-  // 言語を切り替えると文字が変わるので測り直す
+  // 言語や表示する項目を切り替えると文字が変わるので測り直す
   useEffect(() => {
     sizes.current = new WeakMap();
-  }, [lang]);
+  }, [lang, parts]);
 
   const items = useMemo(
     () =>
@@ -119,6 +120,8 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
 
   return visible.map((star, i) => {
     const { main, sub } = starLabel(star, star.genitive, lang);
+    // 固有名の無い星は符号が1段目（名前）になるので、符号を隠す設定でも残す
+    const designation = parts.designation && sub;
     return (
       <Html
         key={star.id}
@@ -136,7 +139,18 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
           style={{ "--star-offset": `${star.offset}px` } as React.CSSProperties}
         >
           <span className="star-label-main">{main}</span>
-          {sub && <span className="star-label-sub">{sub}</span>}
+          {(designation || parts.magnitude) && (
+            <span className="star-label-sub">
+              {designation && <span>{designation}</span>}
+              {/* 等級は情報カードと同じく黄色のドット文字で */}
+              {parts.magnitude && (
+                <span className="star-label-mag">
+                  {star.mag.toFixed(2)}
+                  {lang === "ja" ? "等" : " mag"}
+                </span>
+              )}
+            </span>
+          )}
         </div>
       </Html>
     );

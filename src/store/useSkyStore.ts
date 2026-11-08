@@ -26,10 +26,18 @@ export interface FocusTarget {
   constellationId: string;
 }
 
+export interface StarLabelParts {
+  /** バイエル符号など（例: "β Ceti"） */
+  designation: boolean;
+  magnitude: boolean;
+}
+
 interface SkyState {
   viewMode: ViewMode;
   layers: Layers;
   labelLang: LabelLang;
+  /** 星の名前の2段目に出す項目 */
+  starLabelParts: StarLabelParts;
   autoRotate: boolean;
   /** 値が変わるとカメラを初期位置へ戻す */
   resetToken: number;
@@ -46,6 +54,7 @@ interface SkyState {
   setViewMode: (mode: ViewMode) => void;
   toggleLayer: (key: keyof Layers) => void;
   setLabelLang: (lang: LabelLang) => void;
+  toggleStarLabelPart: (key: keyof StarLabelParts) => void;
   toggleAutoRotate: () => void;
   resetView: () => void;
   setReady: (ready: boolean) => void;
@@ -58,6 +67,7 @@ export const useSkyStore = create<SkyState>()((set) => ({
   viewMode: "outside",
   layers: { constellations: true, labels: true, starNames: true, grid: true, ecliptic: true },
   labelLang: "ja",
+  starLabelParts: { designation: true, magnitude: true },
   autoRotate: true,
   resetToken: 0,
   ready: false,
@@ -69,6 +79,8 @@ export const useSkyStore = create<SkyState>()((set) => ({
   setViewMode: (viewMode) => set((s) => ({ viewMode, resetToken: s.resetToken + 1 })),
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
   setLabelLang: (labelLang) => set({ labelLang }),
+  toggleStarLabelPart: (key) =>
+    set((s) => ({ starLabelParts: { ...s.starLabelParts, [key]: !s.starLabelParts[key] } })),
   toggleAutoRotate: () => set((s) => ({ autoRotate: !s.autoRotate })),
   resetView: () => set((s) => ({ resetToken: s.resetToken + 1 })),
   setReady: (ready) => set({ ready }),

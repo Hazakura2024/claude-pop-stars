@@ -194,8 +194,15 @@ body {
   color: var(--c-ink);
 }
 .star-label-sub {
+  display: flex;
+  /* 符号と等級の間を空ける */
+  gap: 1em;
   font-size: 10px;
   color: var(--c-ink-dim);
+}
+.star-label-mag {
+  font-family: var(--font-dotgothic), var(--font-zen-kaku), sans-serif;
+  color: var(--c-yellow);
 }
 
 /* 検索で選んだ星の目印。二重のリングがゆっくり脈打つ */

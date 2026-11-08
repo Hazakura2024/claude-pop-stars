@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-import { type LabelLang, type Layers, useSkyStore, type ViewMode } from "@/store/useSkyStore";
+import {
+  type LabelLang,
+  type Layers,
+  type StarLabelParts,
+  useSkyStore,
+  type ViewMode,
+} from "@/store/useSkyStore";
 
 import { SegmentedControl } from "./SegmentedControl";
 import { Toggle } from "./Toggle";
@@ -13,6 +19,11 @@ const LAYER_LABELS: Record<keyof Layers, string> = {
   starNames: "星の名前（拡大時）",
   grid: "赤経・赤緯グリッド",
   ecliptic: "黄道",
+};
+
+const STAR_LABEL_PART_LABELS: Record<keyof StarLabelParts, string> = {
+  designation: "バイエル符号",
+  magnitude: "等級",
 };
 
 const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
@@ -93,6 +104,16 @@ export function ControlPanel() {
           options={LANG_OPTIONS}
           onChange={s.setLabelLang}
         />
+        <div className="mt-2">
+          {(Object.keys(STAR_LABEL_PART_LABELS) as (keyof StarLabelParts)[]).map((key) => (
+            <Toggle
+              key={key}
+              label={`星の${STAR_LABEL_PART_LABELS[key]}`}
+              checked={s.starLabelParts[key]}
+              onChange={() => s.toggleStarLabelPart(key)}
+            />
+          ))}
+        </div>
 
         <SectionTitle>MOTION</SectionTitle>
         <Toggle label="自動回転" checked={s.autoRotate} onChange={s.toggleAutoRotate} />
