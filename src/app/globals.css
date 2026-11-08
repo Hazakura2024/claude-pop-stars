@@ -177,12 +177,15 @@ body {
   white-space: nowrap;
   font-family: var(--font-zen-kaku), sans-serif;
   line-height: 1.25;
-  /* center 指定で星の位置に箱の中心が来るので、箱ごと星の下へずらす */
+  /* center 指定で星の位置に箱の中心が来るので、箱ごと星の下へずらす。
+     重なるときは StarLabels が transform を書き換えて上・右・左・斜めへ動かす */
   transform: translateY(calc(50% + var(--star-offset, 8px)));
   text-shadow:
     0 0 3px var(--c-void),
     0 0 8px var(--c-void);
-  transition: opacity 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.2s;
   animation: star-label-in 0.3s ease-out;
 }
 .star-label-main {
