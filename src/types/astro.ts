@@ -23,10 +23,14 @@ export interface NotableStar {
 
 /** 名前を表示する星（public/data/starnames.json の1レコード） */
 export interface NamedStar extends NotableStar {
+  /** HIP 番号 */
+  id: string;
   ra: number;
   dec: number;
   /** 所属星座の属格（例: "Ceti"） */
   genitive: string;
+  /** 所属星座の id（Constellation.id と同じ。例: "Cet"、"Ser1"） */
+  con: string;
 }
 
 export interface NamedStarCatalog {

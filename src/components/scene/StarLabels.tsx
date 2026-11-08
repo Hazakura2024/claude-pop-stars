@@ -26,6 +26,8 @@ const toCamera = new THREE.Vector3();
 export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
   const lang = useSkyStore((s) => s.labelLang);
   const viewMode = useSkyStore((s) => s.viewMode);
+  // 検索で選んだ星は、拡大が足りなくても名前を出す
+  const focusId = useSkyStore((s) => (s.focus?.kind === "star" ? s.focus.id : null));
   const [magLimit, setMagLimit] = useState<number | null>(null);
   const refs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -33,7 +35,6 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
     () =>
       catalog.stars.map((star) => ({
         ...star,
-        key: `${star.ra},${star.dec}`,
         position: new THREE.Vector3(...raDecToVec3(star.ra, star.dec, GLOBE_RADIUS)),
         // 星の光に文字が重ならないよう、明るい星ほど下へずらす（px）
         offset: 4 + magnitudeToSize(star.mag) * 0.35,
@@ -41,8 +42,8 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
     [catalog],
   );
   const visible = useMemo(
-    () => (magLimit === null ? [] : items.filter((s) => s.mag <= magLimit)),
-    [items, magLimit],
+    () => items.filter((s) => (magLimit !== null && s.mag <= magLimit) || s.id === focusId),
+    [items, magLimit, focusId],
   );
 
   useFrame(({ camera, size }) => {
@@ -68,7 +69,7 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
     const { main, sub } = starLabel(star, star.genitive, lang);
     return (
       <Html
-        key={star.key}
+        key={star.id}
         position={star.position}
         center
         zIndexRange={[5, 0]}

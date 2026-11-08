@@ -6,6 +6,7 @@ import { ControlPanel } from "@/components/ui/ControlPanel";
 import { Header } from "@/components/ui/Header";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { SearchBox } from "@/components/ui/SearchBox";
 import { StatusBar } from "@/components/ui/StatusBar";
 
 // Three.js は window/WebGL に依存するのでサーバーではレンダリングしない
@@ -29,6 +30,7 @@ export function SkyApp() {
       <div aria-hidden className="fx-scanlines pointer-events-none absolute inset-0 opacity-60" />
 
       <Header />
+      <SearchBox />
       <ControlPanel />
       <StatusBar />
       <InfoCard />

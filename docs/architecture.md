@@ -14,11 +14,12 @@ app/page.tsx (Server Component)
    │  │   ├─ ConstellationHighlight          … 選択中（黄）・ホバー中（シアン）の星座線
    │  │   ├─ ConstellationLabels             … 星座名（drei <Html>）
    │  │   ├─ StarLabels                      … 拡大時の星の名前（drei <Html>）
+   │  │   ├─ StarMarker                      … 検索した星の目印（drei <Html>）
    │  │   └─ ConstellationPicker             … クリック・ホバーの判定（透明な球）
-   │  ├─ CameraRig                           … OrbitControls・視点切替
+   │  ├─ CameraRig                           … OrbitControls・視点切替・検索した星への移動
    │  └─ Effects                             … ポストプロセス
    ├─ 画面効果のオーバーレイ（グリッド床・光だまり・走査線）
-   └─ Header / ControlPanel / StatusBar / InfoCard / LoadingScreen
+   └─ Header / SearchBox / ControlPanel / StatusBar / InfoCard / LoadingScreen
 ```
 
 - Three.js は `window` と WebGL を必要とするので、`CelestialCanvas` は `next/dynamic` の `ssr: false` で読み込む。`ssr: false` はクライアントコンポーネントの中でしか使えないため、`SkyApp` に `"use client"` を付けている。
@@ -38,6 +39,8 @@ app/page.tsx (Server Component)
 | `ready`      | 星データの読み込みが済んだか（ローディング画面用）    |
 | `selectedId` | 情報カードを表示中の星座（選択中は自動回転を止める）  |
 | `hoveredId`  | ポインターが乗っている星座                            |
+| `focus`      | 検索で選んだ星・星座（星なら目印を付ける）            |
+| `focusToken` | 値が変わるたびに `CameraRig` が `focus` へ移動する    |
 
 ## データの読み込み
 
@@ -93,3 +96,16 @@ app/page.tsx (Server Component)
 | 0.03° 以下       | 4等まで    |
 
 上限が変わったときだけ state を更新するので、ズーム中に毎フレーム再レンダーすることはない。表示名は情報カードと同じ `starLabel` で作る。
+
+## 検索
+
+`SearchBox` は `buildSearchIndex` で星（`starnames.json`）と星座の索引を作り、`searchSky` で照合する（`src/lib/astro/search.ts`）。
+
+- 検索語と索引のキーを `normalizeQuery` で揃える（NFKC・小文字化・ひらがな→カタカナ・空白と記号の除去）
+- `beta` のようなギリシャ文字の読みは `β` に置き換えた検索語でも照合する。星の名前（Etamin など）を壊さないよう、置き換え前の検索語でも照合する
+- 星のキーは日本語名・英語名・「符号＋属格」（β Ceti）・「符号＋略符」（β Cet）・「星座名＋符号」（くじら座β）
+- 並び順は 前方一致 → 部分一致。同じなら星座が先、星は明るい順
+
+候補を選ぶと `focusOn` が `focus` と `selectedId` を設定し、`focusToken` を進める。`CameraRig` はそれを受けて、見ている方向をクォータニオンの球面補間で目的の星へ回しながら、名前が出るところ（`degreesPerPixelToShow`）まで拡大する。Globe では距離、Planetarium では画角を変える。移動中にドラッグ・ホイールで操作したら、そちらを優先して移動をやめる。星座を選び直す（`select`）と `focus` は外れる。
+
+検索欄はサーバーでの事前レンダリング中に星データを取りに行かないよう、`ready` になるまで表示しない。スマホでは iOS でキーボードを開くために、`flushSync` で検索欄を表示してから同じ操作の中で `focus()` する。

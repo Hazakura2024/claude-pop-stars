@@ -56,3 +56,24 @@ const STAR_LABEL_TIERS = [
 export function starLabelMagLimit(degPerPx: number): number | null {
   return STAR_LABEL_TIERS.find((t) => degPerPx <= t.maxDegreesPerPixel)?.magLimit ?? null;
 }
+
+/** 等級 mag の星の名前が出るまで拡大したときの、1px あたりの角度（境目から少し余裕を持たせる） */
+export function degreesPerPixelToShow(mag: number): number {
+  const tier = STAR_LABEL_TIERS.toReversed().find((t) => mag <= t.magLimit) ?? STAR_LABEL_TIERS[0];
+  return tier.maxDegreesPerPixel * 0.85;
+}
+
+/** degreesPerPixel の逆算: 1px あたりの角度を degPerPx にするための、見ている面までの距離 */
+export function distanceForDegreesPerPixel(
+  degPerPx: number,
+  fovDeg: number,
+  heightPx: number,
+  radius: number,
+): number {
+  return (degPerPx * DEG * radius * heightPx) / (2 * Math.tan((fovDeg * DEG) / 2));
+}
+
+/** degreesPerPixel の逆算: 天球の中心から見て、1px あたりの角度を degPerPx にする画角（度） */
+export function fovForDegreesPerPixel(degPerPx: number, heightPx: number): number {
+  return (2 * Math.atan((degPerPx * DEG * heightPx) / 2)) / DEG;
+}

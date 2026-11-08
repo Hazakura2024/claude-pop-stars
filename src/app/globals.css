@@ -195,6 +195,42 @@ body {
   color: var(--c-ink-dim);
 }
 
+/* 検索で選んだ星の目印。二重のリングがゆっくり脈打つ */
+.star-marker {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.star-marker::before,
+.star-marker::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--c-yellow);
+  box-shadow:
+    0 0 8px #ffe600cc,
+    inset 0 0 8px #ffe60066;
+}
+.star-marker::after {
+  border-color: var(--c-pink);
+  box-shadow: 0 0 10px #ff2e88aa;
+  animation: star-marker-pulse 1.6s ease-out infinite;
+}
+
+@keyframes star-marker-pulse {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
 @keyframes star-label-in {
   from {
     opacity: 0;
@@ -207,7 +243,8 @@ body {
     animation: none;
     clip-path: inset(0 0 100% 0);
   }
-  .star-label {
+  .star-label,
+  .star-marker::after {
     animation: none;
   }
 }

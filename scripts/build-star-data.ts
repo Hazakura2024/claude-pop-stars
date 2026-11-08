@@ -166,6 +166,13 @@ async function main() {
 
   // 名前ラベル用の星。属格は星座名データから引く（へび座は頭部・尾部とも "Serpentis"）
   const genitives = new Map(names.features.map((f) => [String(f.id), f.properties.gen]));
+  const serpensLabels = names.features
+    .filter((f) => String(f.id) === "Ser")
+    .map((f) => toRaDec(f.geometry.coordinates));
+  /** 所属星座の id。へび座はラベル位置が近いほうの部分（Ser1 / Ser2）にする */
+  const constellationId = (c: string, position: RaDec) =>
+    c === "Ser" ? `Ser${nearestIndex(position, serpensLabels) + 1}` : c;
+
   const namedStars: NamedStar[] = stars.features
     .filter((f) => f.properties.mag <= NAME_MAG_LIMIT)
     .flatMap((f): NamedStar[] => {
@@ -177,6 +184,7 @@ async function main() {
       const [ra, dec] = toRaDec(f.geometry.coordinates);
       return [
         {
+          id: String(f.id),
           ja: info.ja ?? "",
           name: info.name,
           desig,
@@ -184,6 +192,7 @@ async function main() {
           ra,
           dec,
           genitive,
+          con: constellationId(info.c, [ra, dec]),
         },
       ];
     })

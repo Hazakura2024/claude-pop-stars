@@ -13,6 +13,19 @@ export interface Layers {
   ecliptic: boolean;
 }
 
+/** 検索で選んだ注目先。カメラをここへ向け、星なら目印を付ける */
+export interface FocusTarget {
+  kind: "star" | "constellation";
+  /** 星なら HIP 番号、星座なら星座の id */
+  id: string;
+  ra: number;
+  dec: number;
+  /** 星の等級（名前が表示される拡大率を決める） */
+  mag?: number;
+  /** あわせて選択する星座の id */
+  constellationId: string;
+}
+
 interface SkyState {
   viewMode: ViewMode;
   layers: Layers;
@@ -26,6 +39,9 @@ interface SkyState {
   selectedId: string | null;
   /** ポインターが乗っている星座 */
   hoveredId: string | null;
+  focus: FocusTarget | null;
+  /** 値が変わるとカメラを focus へ移動させる（同じ星を選び直したときも動かすため） */
+  focusToken: number;
 
   setViewMode: (mode: ViewMode) => void;
   toggleLayer: (key: keyof Layers) => void;
@@ -35,6 +51,7 @@ interface SkyState {
   setReady: (ready: boolean) => void;
   select: (id: string | null) => void;
   hover: (id: string | null) => void;
+  focusOn: (target: FocusTarget) => void;
 }
 
 export const useSkyStore = create<SkyState>()((set) => ({
@@ -46,6 +63,8 @@ export const useSkyStore = create<SkyState>()((set) => ({
   ready: false,
   selectedId: null,
   hoveredId: null,
+  focus: null,
+  focusToken: 0,
 
   setViewMode: (viewMode) => set((s) => ({ viewMode, resetToken: s.resetToken + 1 })),
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
@@ -53,6 +72,9 @@ export const useSkyStore = create<SkyState>()((set) => ({
   toggleAutoRotate: () => set((s) => ({ autoRotate: !s.autoRotate })),
   resetView: () => set((s) => ({ resetToken: s.resetToken + 1 })),
   setReady: (ready) => set({ ready }),
-  select: (selectedId) => set({ selectedId }),
+  // 星座を選び直したり選択を外したりしたら、検索の目印も外す
+  select: (selectedId) => set({ selectedId, focus: null }),
   hover: (hoveredId) => set((s) => (s.hoveredId === hoveredId ? s : { hoveredId })),
+  focusOn: (focus) =>
+    set((s) => ({ focus, selectedId: focus.constellationId, focusToken: s.focusToken + 1 })),
 }));
