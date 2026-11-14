@@ -8,6 +8,7 @@ import {
   greatCircleArc,
   magnitudeToSize,
   raDecToVec3,
+  bvColorName,
 } from "@/lib/astro";
 
 const close = (a: number[], b: number[]) => a.forEach((v, i) => expect(v).toBeCloseTo(b[i], 6));
@@ -89,5 +90,16 @@ describe("greatCircleArc / arcSegments", () => {
     );
     expect(segs).toHaveLength((2 + 2) * 2); // 各4°を2分割 × 2本、1線分=2点
     close(segs[1], segs[2]); // 前の線分の終点 = 次の線分の始点
+  });
+});
+
+describe("bvColorName", () => {
+  it("ベテルギウス（B-V 1.85）は赤", () => {
+    expect(bvColorName(1.85)).toBe("赤");
+  });
+  it("太陽（B-V 0.65）は黄", () => expect(bvColorName(0.65)).toBe("黄"));
+  it("シリウス（B-V 0.01）は白", () => expect(bvColorName(0.01)).toBe("白"));
+  it("リゲル（B-V -0.03）は青白", () => {
+    expect(bvColorName(-0.03)).toBe("青白");
   });
 });

@@ -13,7 +13,10 @@ export interface Layers {
   ecliptic: boolean;
 }
 
-/** 検索で選んだ注目先。カメラをここへ向け、星なら目印を付ける */
+/** クリックで選ぶ対象 */
+export type PickMode = "constellation" | "star";
+
+/** 検索で選んだ注目先。カメラをここへ向ける */
 export interface FocusTarget {
   kind: "star" | "constellation";
   /** 星なら HIP 番号、星座なら星座の id */
@@ -22,8 +25,6 @@ export interface FocusTarget {
   dec: number;
   /** 星の等級（名前が表示される拡大率を決める） */
   mag?: number;
-  /** あわせて選択する星座の id */
-  constellationId: string;
 }
 
 export interface StarLabelParts {
@@ -43,10 +44,15 @@ interface SkyState {
   resetToken: number;
   /** 星データの読み込みが完了したか */
   ready: boolean;
+  pickMode: PickMode;
   /** 情報カードを表示中の星座 */
   selectedId: string | null;
   /** ポインターが乗っている星座 */
   hoveredId: string | null;
+  /** 情報カードを表示中の星（HIP 番号） */
+  selectedStarId: string | null;
+  /** ポインターが乗っている星（HIP 番号） */
+  hoveredStarId: string | null;
   focus: FocusTarget | null;
   /** 値が変わるとカメラを focus へ移動させる（同じ星を選び直したときも動かすため） */
   focusToken: number;
@@ -58,8 +64,15 @@ interface SkyState {
   toggleAutoRotate: () => void;
   resetView: () => void;
   setReady: (ready: boolean) => void;
+  setPickMode: (mode: PickMode) => void;
+  /** 星座を選ぶ（星の選択は外れる）。星モードからでも星座モードに切り替えて開く */
   select: (id: string | null) => void;
   hover: (id: string | null) => void;
+  selectStar: (id: string | null) => void;
+  hoverStar: (id: string | null) => void;
+  /** 星・星座の選択をすべて外す */
+  clearSelection: () => void;
+  /** 検索で選んだ星・星座へカメラを向け、そのモードに切り替えて選択する */
   focusOn: (target: FocusTarget) => void;
 }
 
@@ -71,8 +84,11 @@ export const useSkyStore = create<SkyState>()((set) => ({
   autoRotate: true,
   resetToken: 0,
   ready: false,
+  pickMode: "constellation",
   selectedId: null,
   hoveredId: null,
+  selectedStarId: null,
+  hoveredStarId: null,
   focus: null,
   focusToken: 0,
 
@@ -84,9 +100,41 @@ export const useSkyStore = create<SkyState>()((set) => ({
   toggleAutoRotate: () => set((s) => ({ autoRotate: !s.autoRotate })),
   resetView: () => set((s) => ({ resetToken: s.resetToken + 1 })),
   setReady: (ready) => set({ ready }),
-  // 星座を選び直したり選択を外したりしたら、検索の目印も外す
-  select: (selectedId) => set({ selectedId, focus: null }),
+  // モードを切り替えたら、選択とホバーはすべて外す
+  setPickMode: (pickMode) =>
+    set({
+      pickMode,
+      selectedId: null,
+      hoveredId: null,
+      selectedStarId: null,
+      hoveredStarId: null,
+      focus: null,
+    }),
+  select: (selectedId) =>
+    set(
+      selectedId
+        ? {
+            selectedId,
+            selectedStarId: null,
+            focus: null,
+            pickMode: "constellation",
+            hoveredStarId: null,
+          }
+        : { selectedId: null, selectedStarId: null, focus: null },
+    ),
   hover: (hoveredId) => set((s) => (s.hoveredId === hoveredId ? s : { hoveredId })),
+  selectStar: (selectedStarId) => set({ selectedStarId, selectedId: null, focus: null }),
+  hoverStar: (hoveredStarId) =>
+    set((s) => (s.hoveredStarId === hoveredStarId ? s : { hoveredStarId })),
+  clearSelection: () => set({ selectedId: null, selectedStarId: null, focus: null }),
   focusOn: (focus) =>
-    set((s) => ({ focus, selectedId: focus.constellationId, focusToken: s.focusToken + 1 })),
+    set((s) => ({
+      focus,
+      focusToken: s.focusToken + 1,
+      pickMode: focus.kind,
+      selectedId: focus.kind === "constellation" ? focus.id : null,
+      selectedStarId: focus.kind === "star" ? focus.id : null,
+      hoveredId: null,
+      hoveredStarId: null,
+    })),
 }));

@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   bestViewing,
   buildPickTargets,
+  buildStarPickTargets,
   degreesPerPixel,
   formatDec,
   formatRa,
   pickConstellation,
+  pickStar,
   raDecToVec3,
   starLabel,
   starLabelMagLimit,
@@ -108,5 +110,42 @@ describe("degreesPerPixel / starLabelMagLimit", () => {
     expect(starLabelMagLimit(0.055)).toBe(2);
     expect(starLabelMagLimit(0.04)).toBe(3);
     expect(starLabelMagLimit(0.02)).toBe(4);
+  });
+});
+
+describe("pickStar", () => {
+  const targets = buildStarPickTargets([
+    {
+      id: "1",
+      ja: "",
+      name: "",
+      desig: "α",
+      mag: 1,
+      ra: 0,
+      dec: 0,
+      con: "A",
+      genitive: "A",
+      bv: 0,
+    },
+    {
+      id: "2",
+      ja: "",
+      name: "",
+      desig: "β",
+      mag: 2,
+      ra: 3,
+      dec: 0,
+      con: "A",
+      genitive: "A",
+      bv: 0,
+    },
+  ]);
+
+  it("いちばん近い星を選ぶ", () => {
+    expect(pickStar(raDecToVec3(1, 0.5), targets, 2)).toBe("1");
+    expect(pickStar(raDecToVec3(2.2, 0), targets, 2)).toBe("2");
+  });
+  it("範囲外なら null", () => {
+    expect(pickStar(raDecToVec3(10, 0), targets, 2)).toBeNull();
   });
 });

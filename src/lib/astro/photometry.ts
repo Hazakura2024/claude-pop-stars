@@ -49,3 +49,16 @@ export function temperatureToRgb(kelvin: number, saturation = 1.6): [number, num
 export function bvToRgb(bv: number): [number, number, number] {
   return temperatureToRgb(bvToTemperature(bv));
 }
+
+/**
+ * B-V 色指数 → 見た目の色の呼び名。スペクトル型（B/A/F/G/K/M）の B-V の目安で分ける。
+ * 温度の推定式を通すと境目（A型とB型の約1万K）付近で誤差が出るので、色指数で直接判定する。
+ */
+export function bvColorName(bv: number): string {
+  if (bv < 0) return "青白"; // B型
+  if (bv < 0.3) return "白"; // A型
+  if (bv < 0.58) return "黄白"; // F型
+  if (bv < 0.81) return "黄"; // G型
+  if (bv < 1.4) return "橙"; // K型
+  return "赤"; // M型
+}

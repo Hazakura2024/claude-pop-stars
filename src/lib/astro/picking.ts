@@ -1,7 +1,7 @@
 /**
- * クリック位置からいちばん近い星座を探す。
+ * クリック位置からいちばん近い星座・星を探す。
  */
-import type { Constellation } from "@/types/astro";
+import type { Constellation, NamedStar } from "@/types/astro";
 
 import { arcSegments, DEG, raDecToVec3, type Vec3 } from "./coordinates";
 
@@ -59,6 +59,30 @@ export function pickConstellation(
   for (const t of targets) {
     let chord = Math.sqrt(dot(sub(dir, t.label), sub(dir, t.label)));
     for (const [a, b] of t.segments) chord = Math.min(chord, distanceToSegment(dir, a, b));
+    if (chord < bestChord) {
+      bestChord = chord;
+      bestId = t.id;
+    }
+  }
+  return chordToDegrees(bestChord) <= maxDegrees ? bestId : null;
+}
+
+export interface StarPickTarget {
+  id: string;
+  /** 星の方向（単位ベクトル） */
+  dir: Vec3;
+}
+
+export function buildStarPickTargets(stars: NamedStar[]): StarPickTarget[] {
+  return stars.map((s) => ({ id: s.id, dir: raDecToVec3(s.ra, s.dec) }));
+}
+
+/** 方向 dir（単位ベクトル）から maxDegrees 以内でいちばん近い星の id を返す */
+export function pickStar(dir: Vec3, targets: StarPickTarget[], maxDegrees: number): string | null {
+  let bestId: string | null = null;
+  let bestChord = Infinity;
+  for (const t of targets) {
+    const chord = Math.sqrt(dot(sub(dir, t.dir), sub(dir, t.dir)));
     if (chord < bestChord) {
       bestChord = chord;
       bestId = t.id;

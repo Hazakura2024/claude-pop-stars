@@ -52,6 +52,7 @@ Tailwind からは `bg-pink`、`text-cyan`、`border-yellow/70` のように使�
 | タイトルのグリッチ | `.glitch`（色ずれした残像をときどきずらす）                                                      |
 | 角を切ったパネル   | `.neon-panel`（`clip-path`）                                                                     |
 | 星の名前           | `.star-label`。情報カードの「明るい星」と同じ、太字の名前＋淡い符号と黄色のドット文字の等級の2段 |
-| 検索した星の目印   | `.star-marker`。黄色のリングと、外へ広がって消えるピンクのリング                                 |
+| 選択中の星の目印   | `.star-marker`。黄色のリングと、外へ広がって消えるピンクのリング                                 |
+| ホバー中の星の目印 | `.star-marker[data-variant="hovered"]`。脈打たないシアンの細いリング                             |
 
 `prefers-reduced-motion` が有効な環境では、グリッチのアニメーションを止める。

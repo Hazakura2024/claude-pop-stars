@@ -5,6 +5,7 @@ import { useState } from "react";
 import {
   type LabelLang,
   type Layers,
+  type PickMode,
   type StarLabelParts,
   useSkyStore,
   type ViewMode,
@@ -29,6 +30,11 @@ const STAR_LABEL_PART_LABELS: Record<keyof StarLabelParts, string> = {
 const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
   { value: "outside", label: "Globe" },
   { value: "inside", label: "Planetarium" },
+];
+
+const PICK_OPTIONS: { value: PickMode; label: string }[] = [
+  { value: "constellation", label: "星座" },
+  { value: "star", label: "星" },
 ];
 
 const LANG_OPTIONS: { value: LabelLang; label: string }[] = [
@@ -86,6 +92,14 @@ export function ControlPanel() {
             ? "外から見る天球儀。星座は左右反転して見えます。"
             : "中心から見上げる空。実際の夜空と同じ向きです。"}
         </p>
+
+        <SectionTitle>SELECT</SectionTitle>
+        <SegmentedControl
+          label="クリックで選ぶもの"
+          value={s.pickMode}
+          options={PICK_OPTIONS}
+          onChange={s.setPickMode}
+        />
 
         <SectionTitle>LAYERS</SectionTitle>
         {(Object.keys(LAYER_LABELS) as (keyof Layers)[]).map((key) => (

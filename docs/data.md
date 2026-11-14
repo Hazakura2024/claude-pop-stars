@@ -75,8 +75,8 @@ pnpm data
   "magLimit": 4,
   "stars": [
     // desig は元データのまま（"π3" など）。表示時に番号を上付きにする（π³）
-    // id は HIP 番号、con は所属星座の id（へび座は Ser1 / Ser2）
-    { "id": "3419", "ja": "ディフダ", "name": "Diphda", "desig": "β", "mag": 2.04, "ra": 10.8974, "dec": -17.9866, "genitive": "Ceti", "con": "Cet" }
+    // id は HIP 番号、con は所属星座の id（へび座は Ser1 / Ser2）、bv は B-V 色指数（無ければ null）
+    { "id": "3419", "ja": "ディフダ", "name": "Diphda", "desig": "β", "mag": 2.04, "ra": 10.8974, "dec": -17.9866, "genitive": "Ceti", "con": "Cet", "bv": 1.019 }
   ]
 }
 ```

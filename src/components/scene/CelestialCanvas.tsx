@@ -14,9 +14,9 @@ import { CelestialGrid, Ecliptic } from "./CelestialGrid";
 import { ConstellationHighlight } from "./ConstellationHighlight";
 import { ConstellationLabels } from "./ConstellationLabels";
 import { ConstellationLines } from "./ConstellationLines";
-import { ConstellationPicker } from "./ConstellationPicker";
 import { Effects } from "./Effects";
 import { Globe } from "./Globe";
+import { SkyPicker } from "./SkyPicker";
 import { StarLabels } from "./StarLabels";
 import { StarMarker } from "./StarMarker";
 import { Stars } from "./Stars";
@@ -53,11 +53,14 @@ function Sky() {
       {layers.constellations && (
         <ConstellationLines constellations={constellations.constellations} />
       )}
-      <ConstellationHighlight constellations={constellations.constellations} />
+      <ConstellationHighlight
+        constellations={constellations.constellations}
+        stars={starNames.stars}
+      />
       {layers.labels && <ConstellationLabels constellations={constellations.constellations} />}
       {layers.starNames && <StarLabels catalog={starNames} />}
-      <StarMarker />
-      <ConstellationPicker constellations={constellations.constellations} />
+      <StarMarker catalog={starNames} />
+      <SkyPicker constellations={constellations.constellations} stars={starNames.stars} />
     </>
   );
 }

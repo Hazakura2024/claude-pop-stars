@@ -2,7 +2,7 @@
 
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import {
@@ -24,17 +24,20 @@ const projected = new THREE.Vector3();
 /**
  * 拡大したときに、星の下へ名前とバイエル符号を出す。
  * 拡大の度合い（1px あたりの角度）に応じて、明るい星から順に表示数を増やす。
- * 名前どうしが重なるときは、明るい星（検索で選んだ星は最優先）から置いていき、
+ * 名前どうしが重なるときは、明るい星（選択中・ホバー中の星は最優先）から置いていき、
  * 後の名前は上・右・左・斜めへずらす。どこにも置けなければ隠す。
  */
 export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
   const lang = useSkyStore((s) => s.labelLang);
   const parts = useSkyStore((s) => s.starLabelParts);
   const viewMode = useSkyStore((s) => s.viewMode);
-  // 検索で選んだ星は、拡大が足りなくても名前を出す
-  const focusId = useSkyStore((s) => (s.focus?.kind === "star" ? s.focus.id : null));
+  // 選択中・ホバー中の星は、拡大が足りなくても名前を出す
+  const selectedStarId = useSkyStore((s) => s.selectedStarId);
+  const hoveredStarId = useSkyStore((s) => s.hoveredStarId);
   const [magLimit, setMagLimit] = useState<number | null>(null);
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  // 星の id → ラベルの要素。並び順は選択やホバーで変わり、drei の <Html> の中身は
+  // 別のタイミングで描画されるので、添字ではなく id で対応させる
+  const refs = useRef(new Map<string, HTMLDivElement>());
   // ラベルの大きさ（px）。文字が変わらない限り同じなので、測るのは一度だけにする
   const sizes = useRef(new WeakMap<HTMLDivElement, { width: number; height: number }>());
   // 前のフレームの置き場所。変わったときだけ DOM を書き換える
@@ -55,12 +58,17 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
       })),
     [catalog],
   );
-  // 重なりを解く優先順に並べる（カタログは明るい順なので、検索で選んだ星だけを先頭へ）
+  // 重なりを解く優先順に並べる（カタログは明るい順なので、選択中・ホバー中の星だけを先頭へ）
   const visible = useMemo(() => {
-    const shown = items.filter((s) => magLimit !== null && s.mag <= magLimit && s.id !== focusId);
-    const focused = items.find((s) => s.id === focusId);
-    return focused ? [focused, ...shown] : shown;
-  }, [items, magLimit, focusId]);
+    const pinned = [selectedStarId, hoveredStarId].flatMap(
+      (id) => items.find((s) => s.id === id) ?? [],
+    );
+    const unique = [...new Set(pinned)];
+    const shown = items.filter(
+      (s) => magLimit !== null && s.mag <= magLimit && !unique.includes(s),
+    );
+    return [...unique, ...shown];
+  }, [items, magLimit, selectedStarId, hoveredStarId]);
 
   useFrame(({ camera, size }) => {
     const { fov } = camera as THREE.PerspectiveCamera;
@@ -83,7 +91,7 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
     );
 
     const requests = visible.map((item, i): LabelRequest | null => {
-      const el = refs.current[i];
+      const el = refs.current.get(item.id);
       if (!el || fades[i] < 0.5) return null;
       projected.copy(item.position).project(camera);
       // カメラの後ろ
@@ -102,8 +110,8 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
     });
 
     const result = placeLabels(requests);
-    visible.forEach((_, i) => {
-      const el = refs.current[i];
+    visible.forEach((item, i) => {
+      const el = refs.current.get(item.id);
       if (!el) return;
       const p = result[i];
       el.style.opacity = String(p ? fades[i] : 0);
@@ -118,7 +126,20 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
     });
   });
 
-  return visible.map((star, i) => {
+  /** ラベルの要素を id で登録する ref コールバック。外れたら（同じ要素のときだけ）消す */
+  const register = useCallback(
+    (id: string) => (el: HTMLDivElement | null) => {
+      if (!el) return;
+      const map = refs.current;
+      map.set(id, el);
+      return () => {
+        if (map.get(id) === el) map.delete(id);
+      };
+    },
+    [],
+  );
+
+  return visible.map((star) => {
     const { main, sub } = starLabel(star, star.genitive, lang);
     // 固有名の無い星は符号が1段目（名前）になるので、符号を隠す設定でも残す
     const designation = parts.designation && sub;
@@ -132,10 +153,10 @@ export function StarLabels({ catalog }: { catalog: NamedStarCatalog }) {
         style={{ pointerEvents: "none" }}
       >
         <div
-          ref={(el) => {
-            refs.current[i] = el;
-          }}
+          ref={register(star.id)}
           className="star-label"
+          // SkyPicker が名前のクリックを判定するのに使う
+          data-star-id={star.id}
           style={{ "--star-offset": `${star.offset}px` } as React.CSSProperties}
         >
           <span className="star-label-main">{main}</span>

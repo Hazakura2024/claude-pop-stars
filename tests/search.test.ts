@@ -34,7 +34,7 @@ const star = (
   mag: number,
   con: string,
   genitive: string,
-): NamedStar => ({ id, ja, name, desig, mag, ra: 0, dec: 0, con, genitive });
+): NamedStar => ({ id, ja, name, desig, mag, ra: 0, dec: 0, con, genitive, bv: null });
 
 const index = buildSearchIndex(
   [

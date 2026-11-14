@@ -182,6 +182,7 @@ async function main() {
       const desig = info?.desig.includes("undefined") ? "" : info?.desig;
       if (!info || !genitive || !(desig || info.name)) return [];
       const [ra, dec] = toRaDec(f.geometry.coordinates);
+      const bv = Number.parseFloat(f.properties.bv);
       return [
         {
           id: String(f.id),
@@ -193,6 +194,7 @@ async function main() {
           dec,
           genitive,
           con: constellationId(info.c, [ra, dec]),
+          bv: Number.isFinite(bv) ? round(bv, 3) : null,
         },
       ];
     })

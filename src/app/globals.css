@@ -230,6 +230,20 @@ body {
   animation: star-marker-pulse 1.6s ease-out infinite;
 }
 
+/* ホバー中の星。クリックできることを示す、脈打たない細いリング */
+.star-marker[data-variant="hovered"] {
+  width: 24px;
+  height: 24px;
+}
+.star-marker[data-variant="hovered"]::before {
+  border-width: 1.5px;
+  border-color: var(--c-cyan);
+  box-shadow: 0 0 8px #00f0ffaa;
+}
+.star-marker[data-variant="hovered"]::after {
+  display: none;
+}
+
 @keyframes star-marker-pulse {
   from {
     transform: scale(1);

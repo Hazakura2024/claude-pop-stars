@@ -54,8 +54,10 @@ export function CameraRig() {
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const flight = useRef<Flight | null>(null);
   const viewMode = useSkyStore((s) => s.viewMode);
-  // 星座を選んでいる間は、カードの内容と画面がずれないよう自動回転を止める
-  const autoRotate = useSkyStore((s) => s.autoRotate && s.selectedId === null);
+  // 星座・星を選んでいる間は、カードの内容と画面がずれないよう自動回転を止める
+  const autoRotate = useSkyStore(
+    (s) => s.autoRotate && s.selectedId === null && s.selectedStarId === null,
+  );
   const resetToken = useSkyStore((s) => s.resetToken);
   const focusToken = useSkyStore((s) => s.focusToken);
 

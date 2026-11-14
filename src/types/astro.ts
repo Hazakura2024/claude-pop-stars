@@ -31,6 +31,8 @@ export interface NamedStar extends NotableStar {
   genitive: string;
   /** 所属星座の id（Constellation.id と同じ。例: "Cet"、"Ser1"） */
   con: string;
+  /** B-V 色指数（元データに無ければ null） */
+  bv: number | null;
 }
 
 export interface NamedStarCatalog {

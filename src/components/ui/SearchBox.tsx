@@ -76,11 +76,11 @@ function SearchField() {
   const choose = (r: SearchResult) => {
     if (r.kind === "star") {
       const s = r.star;
-      focusOn({ kind: "star", id: s.id, ra: s.ra, dec: s.dec, mag: s.mag, constellationId: s.con });
+      focusOn({ kind: "star", id: s.id, ra: s.ra, dec: s.dec, mag: s.mag });
     } else {
       const c = r.constellation;
       const [ra, dec] = c.label;
-      focusOn({ kind: "constellation", id: c.id, ra, dec, constellationId: c.id });
+      focusOn({ kind: "constellation", id: c.id, ra, dec });
     }
     setQuery("");
     setOpen(false);
@@ -187,7 +187,7 @@ function SearchField() {
   );
 }
 
-/** 星・星座の検索欄。選ぶとカメラがそこへ移動し、星座の情報カードが開く */
+/** 星・星座の検索欄。選ぶとカメラがそこへ移動し、星または星座の情報カードが開く */
 export function SearchBox() {
   // 星データはブラウザで読み込む。読み込み前（サーバーでの事前レンダリング中も）は出さない
   const ready = useSkyStore((s) => s.ready);
